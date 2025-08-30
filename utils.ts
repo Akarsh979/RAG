@@ -4,6 +4,10 @@ import { Document } from "langchain/document";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { batchsize } from "./config";
 
+let callback: (filename:string, totalChunks:number, chunksUpserted:number,isComplete: boolean)=>void;
+let totalDocumentChunks: number = 0;
+let totalDocumentChunksUpserted: number = 0;
+
 export async function updateVectorDB(
    client: Pinecone,
    indexName: string,
@@ -11,24 +15,30 @@ export async function updateVectorDB(
    docs: Document[],
    progressCallback: (filename:string, totalChunks:number, chunksUpserted:number,isComplete: boolean)=>void
 ){
+   callback = progressCallback;
+   totalDocumentChunks = 0;
+   totalDocumentChunksUpserted = 0;
    const modelname = 'mixedbread-ai/mxbai-embed-large-v1';
    const extractor = await pipeline('feature-extraction',modelname,{
       quantized: false,
    });
-   
-   console.log(extractor);
 
    for(const doc of docs){
       await processDocument(client,indexName,namespace,doc,extractor);
+   }
+
+   if(callback !== undefined){
+      callback("filename",totalDocumentChunks,totalDocumentChunksUpserted,true);
    }
 }
 
 async function processDocument(client: Pinecone, indexName: string, namespace: string, doc: Document<Record<string, any>>, extractor: FeatureExtractionPipeline) {
    const splitter = new RecursiveCharacterTextSplitter();
    const documentChunks = await splitter.splitText(doc.pageContent);
+   totalDocumentChunks = documentChunks.length;
+   totalDocumentChunksUpserted = 0;
    const filename = getFileName(doc.metadata.source);
 
-   console.log(documentChunks.length);
    let chunkBatchIndex = 0;
    while(documentChunks.length > 0){
       chunkBatchIndex++;
@@ -38,7 +48,7 @@ async function processDocument(client: Pinecone, indexName: string, namespace: s
 }
 
 function getFileName(filename:string): string {
-   const docname = filename.substring(filename.lastIndexOf('/')+1);
+   const docname = filename.substring(filename.lastIndexOf('\\')+1);
    return docname.substring(0,docname.lastIndexOf('.')) || docname;
 }
 
@@ -65,6 +75,10 @@ async function processOneBatch(client: Pinecone, indexName: string, namespace: s
 
    const index = client.Index(indexName).namespace(namespace);
    await index.upsert(vectorBatch);
+   totalDocumentChunksUpserted += vectorBatch.length;
+   if(callback !== undefined){
+      callback(filename,totalDocumentChunks,totalDocumentChunksUpserted,false);
+   }
    vectorBatch = [];
 }
 

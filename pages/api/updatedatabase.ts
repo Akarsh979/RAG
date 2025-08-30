@@ -13,6 +13,7 @@ const updateDatabase = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 const handleUpload = async (indexName:string,namespace:string,res:NextApiResponse) => {
+   res.setHeader('Content-Type', 'application/x-ndjson');
    const loader = new DirectoryLoader('./documents',{
       '.pdf': (path: string) => new PDFLoader(path, {
          splitPages: false
@@ -26,13 +27,14 @@ const handleUpload = async (indexName:string,namespace:string,res:NextApiRespons
    });
    await updateVectorDB(client,indexName,namespace,docs,(filename,totalChunks,chunksUpserted,isComplete)=>{
      if(!isComplete){
+       console.log(filename,totalChunks,chunksUpserted,isComplete);
        res.write(
          JSON.stringify({
             filename,
             totalChunks,
             chunksUpserted,
             isComplete
-         })
+         }) + '\n'
        )
      }
      else {

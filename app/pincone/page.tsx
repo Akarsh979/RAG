@@ -9,17 +9,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Database, LucideLoader2, MoveUp, RefreshCcw } from 'lucide-react';
 import React, { useState } from 'react';
 
-type Props = {
-   
-}
-
-function VectorDBPage(props: Props) {
+function VectorDBPage() {
    const [isUploading,setIsUploading] = useState(false);
    const [indexName,setIndexName] = useState("");
    const [namespace,setNameSpace] = useState("");
+   const [filename,setFilename] = useState("");
+   const [progress,setProgress] = useState(0);
+
+   const onFileListRefresh = async () => {
+      
+   }
 
    const onStartUpload = async () => {
-     console.log("reached here");
+     setFilename("");
+     setProgress(0);
+     setIsUploading(true);
      const response = await fetch('api/updatedatabase',{
       method: 'POST',
       body: JSON.stringify({
@@ -29,7 +33,44 @@ function VectorDBPage(props: Props) {
      });
      console.log(response);
 
-     // await processStreamedProgress(response);
+     await processStreamedProgress(response);
+   }
+
+   async function processStreamedProgress(response: Response) {
+      const reader = response.body?.getReader();
+      
+      if(!reader){
+         console.error('Reader was not found');
+         return;
+      }
+      let buffer = '';
+      try {
+         while (true) {
+            const {done,value} = await reader.read();
+            if(done){
+               setIsUploading(false);
+               break;
+            }
+            buffer += new TextDecoder().decode(value);
+            const lines = buffer.split('\n');
+            buffer = lines.pop()!;
+            for(const line of lines){
+               if(line.trim() === '') continue;
+               try {
+                  const {filename,totalChunks,chunksUpserted,isComplete} = JSON.parse(line);
+                  const currentProgress = (chunksUpserted/totalChunks) * 100;
+                  setProgress(currentProgress);
+                  setFilename(`${filename} [${chunksUpserted}/${totalChunks}]`);
+               } catch (e) {
+                  console.error('Failed to parse line:', line, e);
+               }
+            }
+         }
+      } catch (error) {
+         console.error(error);
+      } finally {
+         reader.releaseLock();
+      }
    }
 
    return (
@@ -43,7 +84,7 @@ function VectorDBPage(props: Props) {
             <div className='grid grid-cols-3 gap-4'>
               <div className='col-span-2 grid border rounded-lg p-6'>
                 <div className='gap-4 relative'>
-                   <Button className='absolute -right-4 -top-4 ' variant={'ghost'} size={'icon'}>
+                   <Button onClick={onFileListRefresh} className='absolute -right-4 -top-4 ' variant={'ghost'} size={'icon'}>
                      <RefreshCcw/>
                    </Button>
                    <Label>Files List</Label>
@@ -69,9 +110,9 @@ function VectorDBPage(props: Props) {
             </div>
 
             {isUploading && <div className='mt-4'>
-              <Label>File Name:</Label>
+              <Label>File Name: {filename}</Label>
               <div className='flex items-center gap-4'>
-                <Progress value={80}/>
+                <Progress value={progress}/>
                 <LucideLoader2 className='stroke-[#D90013] animate-spin'/>
               </div>
             </div>}
