@@ -15,9 +15,13 @@ function VectorDBPage() {
    const [namespace,setNameSpace] = useState("");
    const [filename,setFilename] = useState("");
    const [progress,setProgress] = useState(0);
+   const [fileListAsText,setFileListAsText] = useState("");
 
    const onFileListRefresh = async () => {
-      
+      const response = await fetch('api/getfilelist');
+      const filenames = await response.json();
+      const resultString = (filenames as []).map(filename => `📄 ${filename}`).join('\n');
+      setFileListAsText(resultString);
    }
 
    const onStartUpload = async () => {
@@ -88,7 +92,7 @@ function VectorDBPage() {
                      <RefreshCcw/>
                    </Button>
                    <Label>Files List</Label>
-                   <Textarea readOnly className='min-h-24 resize-none border p-3 shadow-none disabled:cursor-default focus-visible:ring-0 text-sm text-muted-foreground'/>
+                   <Textarea readOnly value={fileListAsText} className='min-h-24 resize-none border p-3 shadow-none disabled:cursor-default focus-visible:ring-0 text-sm text-muted-foreground'/>
                 </div>
                 <div className='grid grid-cols-2 gap-4'>
                   <div className="grid gap-2">
