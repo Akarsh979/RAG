@@ -19,6 +19,7 @@ function VectorDBPage(props: Props) {
    const [namespace,setNameSpace] = useState("");
 
    const onStartUpload = async () => {
+     console.log("reached here");
      const response = await fetch('api/updatedatabase',{
       method: 'POST',
       body: JSON.stringify({
@@ -42,7 +43,7 @@ function VectorDBPage(props: Props) {
             <div className='grid grid-cols-3 gap-4'>
               <div className='col-span-2 grid border rounded-lg p-6'>
                 <div className='gap-4 relative'>
-                   <Button onClick={onStartUpload} className='absolute -right-4 -top-4 ' variant={'ghost'} size={'icon'}>
+                   <Button className='absolute -right-4 -top-4 ' variant={'ghost'} size={'icon'}>
                      <RefreshCcw/>
                    </Button>
                    <Label>Files List</Label>
@@ -59,7 +60,7 @@ function VectorDBPage(props: Props) {
                   </div>
                 </div>
               </div>
-              <Button variant={'outline'} className='h-full w-full' disabled={isUploading}>
+              <Button onClick={onStartUpload} variant={'outline'} className='h-full w-full' disabled={isUploading}>
                 <span className='flex'>
                  <Database className='size-12 stroke-[#D90013]'/>
                  <MoveUp className='stroke-[#D90013]'/>
