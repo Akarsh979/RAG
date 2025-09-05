@@ -11,7 +11,7 @@ AI Lawyer is an advanced legal document analysis and Q&A platform. It leverages 
 - **Risk & Red Flag Detection**: Identifies potential risks, compliance issues, and red flags in your documents.
 - **Custom Legal Q&A**: Ask questions about your uploaded document and get grounded, document-specific answers.
 - **Custom Knowledge Base**: Built on a private, extensible knowledge base containing legal documents, acts, laws, and more. You can update or expand the knowledge base as needed.
-- **Free Embedding Generation**: Embeddings for legal documents are created locally using [mixedbread-ai/mxbai-embed-large-v1](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) and pushed to Pinecone vector DB. See [this repo](https://github.com/Akarsh979/RAG) for the embedding pipeline.
+- **Free Embedding Generation**: Embeddings for legal documents are created locally using [mixedbread-ai/mxbai-embed-large-v1](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) and pushed to Pinecone vector DB. See [this repo](https://github.com/Akarsh979/RAG) for the embedding pipeline. The app uses LangChain to load, parse, and process documents, and updates the vector database in real time with progress feedback.
 - **Modern, Responsive UI**: Clean, user-friendly interface with support for dark mode and mobile devices.
 
 ---
@@ -22,10 +22,11 @@ AI Lawyer is an advanced legal document analysis and Q&A platform. It leverages 
 - **TypeScript**
 - **Tailwind CSS**
 - **Pinecone** (Vector Database)
+- **LangChain** (Document loading, parsing, and chunking)
 - **@ai-sdk/google** (Gemini LLM for text generation)
 - **@pinecone-database/pinecone** (Vector search)
-- **@huggingface/inference** (Local embedding generation)
-- **Sonner** (Toasts/notifications)
+- **@huggingface/inference** (Embedding generation)
+- **Shadcn** (UI)
 
 ---
 
